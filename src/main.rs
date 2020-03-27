@@ -3,6 +3,7 @@ extern crate yterm;
 use std::rc::Rc;
 use std::thread;
 use std::time::Duration;
+use tokio::task;
 
 fn main() {
     let rt = tokio::runtime::Builder::new()
@@ -11,14 +12,39 @@ fn main() {
         .build()
         .unwrap();
 
-    // UI Thread
-    let ui_th = thread::spawn({
+    let mut connector = yterm::logic::app::Connector::new();
+
+    // Backend
+    rt.spawn({
         let handle = rt.handle().clone();
-        let shared = yterm::logic::state::Shared { rt: handle };
-        move || {
-            let ui = yterm::ui_gtk::app::UI::new(Rc::new(shared));
-            ui.run();
+        let app = yterm::logic::app::App {
+            rt: handle,
+            conn: connector.server_conn().expect("Should gettable"),
+        };
+
+        async {
+            app.run_main_loop().await
         }
+    });
+
+    // UI Thread
+    let ui_th = thread::spawn(||{
+        let mut rt = tokio::runtime::Builder::new()
+            .threaded_scheduler()
+            .enable_all()
+            .build()
+            .unwrap();
+        rt.block_on(async move {
+            let conn = connector.client_attach_to_local_server().expect("Should attachable");
+            let shared = yterm::ui_gtk::app::Shared {
+                conn,
+            };
+            let join = task::spawn_blocking(move || {
+                let ui = yterm::ui_gtk::app::UI::new(shared);
+                ui.run();
+            });
+            join.await;
+        });
     });
     ui_th.join().unwrap();
 

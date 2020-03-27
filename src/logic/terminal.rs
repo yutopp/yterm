@@ -1,8 +1,9 @@
 use std::ffi::CString;
 use std::os::unix::io::AsRawFd;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::logic::pty;
+use crate::logic::window;
 use crate::logic::state::Shared;
 
 #[derive(Debug)]
@@ -14,7 +15,7 @@ pub struct Terminal {
     master: pty::Master,
     slave: pty::Slave,
 
-    shared: Rc<Shared>,
+    shared: Shared,
     state: State,
 }
 
@@ -28,7 +29,7 @@ pub struct State {
 }
 
 impl Terminal {
-    pub fn new(shared: Rc<Shared>) -> Self {
+    pub fn new(shared: Shared) -> Self {
         let master = unsafe { pty::Master::open() };
         let slave = unsafe { master.open_slave() };
 
@@ -48,8 +49,7 @@ impl Terminal {
         }
     }
 
-    // TODO: remove glib
-    pub fn start_thread(self, tx: glib::Sender<Event>) -> Handle {
+    pub fn start_thread(self, win: Arc<window::Window>) -> Handle {
         self.set_winsize();
 
         let pid = unsafe { libc::fork() };
@@ -61,7 +61,7 @@ impl Terminal {
             unreachable!()
         } else if pid > 0 {
             // parent process
-            return self.parent_process(tx);
+            return self.parent_process(win);
         }
 
         unreachable!();
@@ -121,13 +121,14 @@ impl Terminal {
         unreachable!();
     }
 
-    fn parent_process(self, tx: glib::Sender<Event>) -> Handle {
+    fn parent_process(self, win: Arc<window::Window>) -> Handle {
         drop(self.slave);
 
         let reader = self.master.handle;
         let writer = reader.try_clone().unwrap();
 
         self.shared.rt.spawn({
+            let win = win.clone();
             let mut reader = tokio::fs::File::from_std(reader);
             async move {
                 use tokio::prelude::*;
@@ -136,13 +137,18 @@ impl Terminal {
                 let mut buf = [0u8; BUFFER_SIZE];
                 loop {
                     if let Ok(n) = reader.read(&mut buf[..]).await {
-                        tx.send(Event::Terminal(buf[..n].into())).unwrap();
+                        let s = String::from_utf8(buf[..n].into()).unwrap();
+                        println!("{:?}",s);
+
+                        win.write(s).await;
+                        //tx.send(Event::Terminal(buf[..n].into())).unwrap();
                     }
                 }
             }
         });
 
         Handle {
+            win,
             state: self.state,
             writer,
         }
@@ -150,6 +156,7 @@ impl Terminal {
 }
 
 pub struct Handle {
+    win: Arc<window::Window>,
     pub state: State,
 
     writer: std::fs::File,

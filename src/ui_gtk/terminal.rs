@@ -6,33 +6,50 @@ use gtk::prelude::*;
 //use gio::prelude::*;
 use gtk::{DrawingArea, DrawingAreaBuilder};
 
-use crate::logic::terminal::{Event, Handle, Terminal};
+use crate::logic::app;
+use crate::logic::terminal::{Event};
 use crate::ui_gtk::im;
 use crate::ui_gtk::state::UIShared;
 
 pub struct UI {
     pub widget: DrawingArea,
 
+    id: u64,
     ui_shared: UIShared,
-    handle: Handle,
+    //handle: Handle,
+
+    columns: i32,
+    rows: i32,
+    font_width: i32,
+    font_height: i32,
+
+    texts: Vec<char>,
 }
 
 impl UI {
-    pub fn new(ui_shared: UIShared, t: Terminal) -> Arc<RefCell<Self>> {
+    pub fn new(ui_shared: UIShared, id: u64) -> Arc<RefCell<Self>> {
         let drawing = DrawingAreaBuilder::new()
             .can_focus(true)
             .events(gdk::EventMask::KEY_PRESS_MASK)
             .events(gdk::EventMask::KEY_RELEASE_MASK)
             .build();
 
-        let (term_tx, term_rx) = glib::MainContext::channel(glib::PRIORITY_DEFAULT);
-        let handle = t.start_thread(term_tx);
+        //let (term_tx, term_rx) = glib::MainContext::channel(glib::PRIORITY_DEFAULT);
+        //let handle = t.start_thread(term_tx);
 
         let ui = Arc::new(RefCell::new(Self {
             widget: drawing,
 
+            id,
             ui_shared: ui_shared,
-            handle: handle,
+
+            columns: 40,
+            rows: 16,
+            font_width: 20,
+            font_height: 26,
+
+            texts: vec![],
+            //handle: handle,
         }));
 
         ui.borrow().change_ui_size();
@@ -113,20 +130,20 @@ impl UI {
             move |widget, cr| ui.borrow_mut().draw_editor(widget, cr)
         });
 
-        term_rx.attach(None, {
-            let ui = ui.clone();
-            move |event| ui.borrow_mut().handle_event(event)
-        });
+        //term_rx.attach(None, {
+        //    let ui = ui.clone();
+        //    move |event| ui.borrow_mut().handle_event(event)
+        //});
 
         ui
     }
 
     fn change_ui_size(&self) {
-        let state = &self.handle.state;
+        //let state = &self.handle.state;
 
         self.widget.set_size_request(
-            state.columns * state.font_width,
-            state.rows * state.font_height,
+            self.columns * self.font_width,
+            self.rows * self.font_height,
         );
     }
 
@@ -155,7 +172,7 @@ impl UI {
         let mut pos_y = 0.0;
         let mut buf = [0; 4];
 
-        for c in self.handle.state.texts.iter() {
+        for c in self.texts.iter() {
             match c {
                 '\n' => {
                     pos_x = 0.0;
@@ -163,7 +180,6 @@ impl UI {
                 }
                 _ => {
                     let str = c.encode_utf8(&mut buf);
-                    println!("iter -> {}", str);
 
                     let ext = cr.text_extents(str);
                     cr.move_to(pos_x - ext.x_bearing, pos_y - ext.y_bearing);
@@ -184,7 +200,7 @@ impl UI {
                 for c in seq.chars() {
                     println!("-> {:?}", c);
 
-                    self.handle.recv_char(c);
+                    //self.handle.recv_char(c);
                 }
 
                 self.widget.queue_draw();
@@ -194,13 +210,25 @@ impl UI {
         glib::Continue(true)
     }
 
+    pub fn handle_message(&mut self, seq: String) {
+        for c in seq.chars() {
+            println!("-> {:?}", c);
+
+            self.texts.push(c);
+        }
+
+        self.widget.queue_draw();
+    }
+
     pub fn on_key(&mut self, ch: char) {
-        self.handle.send_char(ch);
+        self.ui_shared.bridge.cast(app::Event::KeyInput(self.id, ch));
+
+        //self.handle.send_char(ch);
     }
 
     pub fn on_keys(&mut self, text: &str) {
         for ch in text.chars() {
-            self.handle.send_char(ch);
+            self.on_key(ch);
         }
     }
 }
