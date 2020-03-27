@@ -1,0 +1,22 @@
+[package]
+name = "yterm_frontend_gtk3"
+version = "0.1.0"
+authors = ["yutopp <yutopp@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "0.2", features = ["full"] }
+futures = "0.3"
+gtk = { version = "^0.8.0", features = ["v3_16"] }
+gtk-sys = { version = "" }
+gio = { version = "", features = ["v2_44"] }
+glib = { version = "" }
+glib-sys = { version = "" }
+gdk = { version = "" }
+cairo-rs = { version = "", features = ["v1_16"] }
+pango = { version = "" }
+
+[dependencies.yterm_lib]
+path = "../yterm_lib"

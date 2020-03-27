@@ -1,5 +1,5 @@
-extern crate yterm;
 extern crate yterm_backend;
+extern crate yterm_frontend_gtk3;
 
 mod local_connector;
 
@@ -38,9 +38,9 @@ fn main() {
             let conn = connector
                 .client_attach_to_local_server()
                 .expect("Should attachable");
-            let shared = yterm::ui_gtk::app::Shared { conn };
+            let shared = yterm_frontend_gtk3::app::Shared { conn };
             let join = task::spawn_blocking(move || {
-                let ui = yterm::ui_gtk::app::UI::new(shared);
+                let ui = yterm_frontend_gtk3::app::UI::new(shared);
                 ui.run();
             });
             join.await.unwrap();

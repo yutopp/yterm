@@ -738,17 +738,10 @@ dependencies = [
 name = "yterm"
 version = "0.1.0"
 dependencies = [
- "cairo-rs",
  "futures",
- "gdk",
- "gio",
- "glib",
- "glib-sys",
- "gtk",
- "gtk-sys",
- "pango",
  "tokio",
  "yterm_backend",
+ "yterm_frontend_gtk3",
  "yterm_lib",
 ]
 
@@ -758,6 +751,23 @@ version = "0.1.0"
 dependencies = [
  "futures",
  "libc",
+ "tokio",
+ "yterm_lib",
+]
+
+[[package]]
+name = "yterm_frontend_gtk3"
+version = "0.1.0"
+dependencies = [
+ "cairo-rs",
+ "futures",
+ "gdk",
+ "gio",
+ "glib",
+ "glib-sys",
+ "gtk",
+ "gtk-sys",
+ "pango",
  "tokio",
  "yterm_lib",
 ]

@@ -8,10 +8,10 @@ use gtk::prelude::*;
 use yterm_lib::conn::Conn;
 use yterm_lib::message::Event;
 
-use crate::ui_gtk::event_bridge;
-use crate::ui_gtk::im;
-use crate::ui_gtk::state;
-use crate::ui_gtk::terminal as ui_terminal;
+use crate::event_bridge;
+use crate::im;
+use crate::state;
+use crate::terminal as ui_terminal;
 
 pub struct Shared<C> {
     pub conn: C,

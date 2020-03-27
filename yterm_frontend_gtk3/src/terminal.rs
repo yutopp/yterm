@@ -7,8 +7,8 @@ use gtk::prelude::*;
 use gtk::{DrawingArea, DrawingAreaBuilder};
 use yterm_lib::message::Event;
 
-use crate::ui_gtk::im;
-use crate::ui_gtk::state::UIShared;
+use crate::im;
+use crate::state::UIShared;
 
 pub struct UI {
     pub widget: DrawingArea,

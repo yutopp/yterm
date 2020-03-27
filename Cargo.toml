@@ -9,14 +9,6 @@ edition = "2018"
 [dependencies]
 tokio = { version = "0.2", features = ["full"] }
 futures = "0.3"
-gtk = { version = "^0.8.0", features = ["v3_16"] }
-gtk-sys = { version = "" }
-gio = { version = "", features = ["v2_44"] }
-glib = { version = "" }
-glib-sys = { version = "" }
-gdk = { version = "" }
-cairo-rs = { version = "", features = ["v1_16"] }
-pango = { version = "" }
 
 [dependencies.yterm_backend]
 path = "./yterm_backend"
@@ -24,8 +16,12 @@ path = "./yterm_backend"
 [dependencies.yterm_lib]
 path = "./yterm_lib"
 
+[dependencies.yterm_frontend_gtk3]
+path = "./yterm_frontend_gtk3"
+
 [workspace]
 members = [
     "yterm_backend",
     "yterm_lib",
+    "yterm_frontend_gtk3",
 ]
