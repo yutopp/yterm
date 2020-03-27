@@ -7,7 +7,6 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-libc = ""
 tokio = { version = "0.2", features = ["full"] }
 futures = "0.3"
 gtk = { version = "^0.8.0", features = ["v3_16"] }
@@ -18,4 +17,15 @@ glib-sys = { version = "" }
 gdk = { version = "" }
 cairo-rs = { version = "", features = ["v1_16"] }
 pango = { version = "" }
-async-trait = ""
+
+[dependencies.yterm_backend]
+path = "./yterm_backend"
+
+[dependencies.yterm_lib]
+path = "./yterm_lib"
+
+[workspace]
+members = [
+    "yterm_backend",
+    "yterm_lib",
+]

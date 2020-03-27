@@ -5,9 +5,9 @@ use std::sync::Arc;
 
 use gio::prelude::*;
 use gtk::prelude::*;
+use yterm_lib::conn::Conn;
+use yterm_lib::message::Event;
 
-use crate::conn::Conn;
-use crate::message::Event;
 use crate::ui_gtk::event_bridge;
 use crate::ui_gtk::im;
 use crate::ui_gtk::state;

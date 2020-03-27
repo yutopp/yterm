@@ -1,6 +1,6 @@
 use tokio::sync::mpsc;
 
-use yterm::conn::channel::ChannelConn;
+use yterm_lib::conn::channel::ChannelConn;
 
 pub struct LocalConnector {
     server_conn: Option<ChannelConn>,

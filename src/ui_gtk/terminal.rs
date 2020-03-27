@@ -5,8 +5,8 @@ use std::sync::Arc;
 use gtk::prelude::*;
 //use gio::prelude::*;
 use gtk::{DrawingArea, DrawingAreaBuilder};
+use yterm_lib::message::Event;
 
-use crate::message::Event;
 use crate::ui_gtk::im;
 use crate::ui_gtk::state::UIShared;
 

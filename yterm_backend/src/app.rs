@@ -2,14 +2,12 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use tokio::task;
+use yterm_lib::conn::{Conn, ConnReceiver};
+use yterm_lib::message::{Event, Message};
 
-use crate::logic::state::Shared;
-use crate::logic::terminal;
-use crate::logic::window;
-use crate::message::{Event, Message};
-
-use crate::conn::conn::Conn;
-pub use crate::conn::{ArcConnSender, ConnReceiver};
+use crate::state::Shared;
+use crate::terminal;
+use crate::window;
 
 pub struct App<C>
 where

@@ -1,4 +1,5 @@
 extern crate yterm;
+extern crate yterm_backend;
 
 mod local_connector;
 
@@ -18,7 +19,7 @@ fn main() {
     // Backend
     rt.spawn({
         let handle = rt.handle().clone();
-        let app = yterm::logic::app::App {
+        let app = yterm_backend::app::App {
             rt: handle,
             conn: connector.server_conn().expect("Should gettable"),
         };

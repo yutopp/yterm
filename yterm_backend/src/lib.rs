@@ -1,3 +1,5 @@
+extern crate yterm_lib;
+
 pub mod app;
 mod pty;
 pub mod state;

@@ -2,9 +2,9 @@ use std::ffi::CString;
 use std::os::unix::io::AsRawFd;
 use std::sync::Arc;
 
-use crate::logic::pty;
-use crate::logic::state::Shared;
-use crate::logic::window;
+use crate::pty;
+use crate::state::Shared;
+use crate::window;
 
 #[derive(Debug)]
 pub enum Event {

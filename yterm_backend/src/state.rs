@@ -1,4 +1,4 @@
-use crate::conn::ArcConnSender;
+use yterm_lib::conn::ArcConnSender;
 
 #[derive(Clone)]
 pub struct Shared {

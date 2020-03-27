@@ -5,9 +5,8 @@ use std::sync::Arc;
 use std::sync::RwLock;
 
 use tokio::task;
-
-use crate::conn::{ArcConnSender, Conn, ConnReceiver};
-use crate::message::{Event, Message};
+use yterm_lib::conn::{ArcConnSender, Conn, ConnReceiver};
+use yterm_lib::message::{Event, Message};
 
 pub struct EventBridge {
     conn_sender: ArcConnSender,

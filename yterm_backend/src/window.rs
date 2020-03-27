@@ -1,5 +1,5 @@
-use crate::logic::state::Shared;
-use crate::message::{Event, Message};
+use crate::state::Shared;
+use yterm_lib::message::{Event, Message};
 
 pub struct Window {
     init: Shared,
