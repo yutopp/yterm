@@ -6,14 +6,15 @@ use std::collections::HashMap;
 use gio::prelude::*;
 use gtk::prelude::*;
 
-use crate::logic::app;
+use crate::logic::app::{Conn};
+use crate::message::{Event};
 use crate::ui_gtk::im;
 use crate::ui_gtk::event_bridge;
 use crate::ui_gtk::state;
 use crate::ui_gtk::terminal as ui_terminal;
 
 pub struct Shared {
-    pub conn: app::Conn,
+    pub conn: Conn,
 }
 
 struct State {
@@ -50,7 +51,7 @@ impl UI {
                 println!("broadcast: {:?}", event);
 
                 match event {
-                    app::Event::WindowWrite(id, content) => {
+                    Event::WindowWrite(id, content) => {
                         if let Some(ui) = windows.borrow_mut().get(&id) {
                             ui.borrow_mut().handle_message(content);
                         }
@@ -95,8 +96,8 @@ impl UI {
                 };
 
                 // Test
-                bridge.cast(app::Event::Testing).unwrap();
-                bridge.call(app::Event::Testing).unwrap();
+                bridge.cast(Event::Testing).unwrap();
+                bridge.call(Event::Testing).unwrap();
 
                 //shared.conn.a;
 

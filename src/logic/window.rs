@@ -1,5 +1,5 @@
 use crate::logic::state::Shared;
-use crate::logic::app;
+use crate::message::{Message, Event};
 
 pub struct Window {
     init: Shared,
@@ -18,6 +18,6 @@ impl Window {
         let mut conn_sender = self.init.conn_sender.clone();
         let id = self.id;
 
-        conn_sender.send(app::Message::Cast(app::Event::WindowWrite(id, s))).await;
+        conn_sender.send(Message::Cast(Event::WindowWrite(id, s))).await;
     }
 }

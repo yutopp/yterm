@@ -7,6 +7,7 @@ use std::sync::RwLock;
 use tokio::task;
 
 use crate::logic::app;
+use crate::message::{Message, Event};
 
 pub struct EventBridge {
     pub conn_sender: app::ConnSender,
@@ -22,7 +23,7 @@ pub struct EventBridge {
 impl EventBridge {
     pub fn new(
         conn: app::Conn,
-        ui_cast_tx: glib::Sender<app::Event>,
+        ui_cast_tx: glib::Sender<Event>,
     ) -> Rc<Self> {
         let (conn_sender, mut conn_receiver) = conn.split(); // backend
 
@@ -42,11 +43,11 @@ impl EventBridge {
                         let ui_cast_tx = ui_cast_tx.clone();
                         move || {
                             match response {
-                                app::Message::Cast(ev) => {
+                                Message::Cast(ev) => {
                                     eprintln!("Cast = {:?}", ev);
                                     ui_cast_tx.send(ev).unwrap();
                                 }
-                                app::Message::Call(id, ev) => {
+                                Message::Call(id, ev) => {
                                     eprintln!("Call = {:?}", ev);
                                     let mut map_ref = id_map.write().unwrap();
                                     map_ref.response(&id, ev);
@@ -65,14 +66,14 @@ impl EventBridge {
         })
     }
 
-    pub fn cast(&self, e: app::Event) -> Result<(), ()> {
+    pub fn cast(&self, e: Event) -> Result<(), ()> {
         let mut sender = self.conn_sender.clone();
-        sender.try_send(app::Message::Cast(e));
+        sender.try_send(Message::Cast(e));
 
         Ok(())
     }
 
-    pub fn call(&self, e: app::Event) -> Result<(), ()> {
+    pub fn call(&self, e: Event) -> Result<(), ()> {
         let (tx, rx) = mpsc::sync_channel(1);
         let cur = {
             let id_map = self.id_map.clone();
@@ -81,7 +82,7 @@ impl EventBridge {
         };
 
         let mut sender = self.conn_sender.clone();
-        sender.try_send(app::Message::Call(cur, e));
+        sender.try_send(Message::Call(cur, e));
 
         let event = rx.recv().unwrap();
         println!("received: {:?}", event);
@@ -92,7 +93,7 @@ impl EventBridge {
 
 struct EventRelation {
     uniq: u64,
-    msg_recv_tx_map: HashMap<u64, Box<dyn Fn(app::Event) -> () + Send + Sync>>,
+    msg_recv_tx_map: HashMap<u64, Box<dyn Fn(Event) -> () + Send + Sync>>,
 }
 
 impl EventRelation {
@@ -103,7 +104,7 @@ impl EventRelation {
         }
     }
 
-    fn register(&mut self, tx: mpsc::SyncSender<app::Event>) -> u64 {
+    fn register(&mut self, tx: mpsc::SyncSender<Event>) -> u64 {
         let cur = self.uniq;
         self.uniq+=1;
         self.msg_recv_tx_map.insert(cur, Box::new(move |ev| {
@@ -115,7 +116,7 @@ impl EventRelation {
         cur
     }
 
-    fn response(&mut self, id: &u64, e: app::Event) -> Option<app::Event> {
+    fn response(&mut self, id: &u64, e: Event) -> Option<Event> {
         let cb_opt = self.msg_recv_tx_map.remove(&id);
         if let Some(cb) = cb_opt {
             eprintln!("Tx = {:?}", e);

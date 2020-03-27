@@ -6,8 +6,7 @@ use gtk::prelude::*;
 //use gio::prelude::*;
 use gtk::{DrawingArea, DrawingAreaBuilder};
 
-use crate::logic::app;
-use crate::logic::terminal::{Event};
+use crate::message::{Event};
 use crate::ui_gtk::im;
 use crate::ui_gtk::state::UIShared;
 
@@ -130,11 +129,6 @@ impl UI {
             move |widget, cr| ui.borrow_mut().draw_editor(widget, cr)
         });
 
-        //term_rx.attach(None, {
-        //    let ui = ui.clone();
-        //    move |event| ui.borrow_mut().handle_event(event)
-        //});
-
         ui
     }
 
@@ -193,23 +187,6 @@ impl UI {
         Inhibit(true)
     }
 
-    fn handle_event(&mut self, event: Event) -> glib::Continue {
-        match event {
-            Event::Terminal(buf) => {
-                let seq = String::from_utf8(buf).expect("Cannot decode utf8");
-                for c in seq.chars() {
-                    println!("-> {:?}", c);
-
-                    //self.handle.recv_char(c);
-                }
-
-                self.widget.queue_draw();
-            }
-        }
-
-        glib::Continue(true)
-    }
-
     pub fn handle_message(&mut self, seq: String) {
         for c in seq.chars() {
             println!("-> {:?}", c);
@@ -221,7 +198,7 @@ impl UI {
     }
 
     pub fn on_key(&mut self, ch: char) {
-        self.ui_shared.bridge.cast(app::Event::KeyInput(self.id, ch));
+        self.ui_shared.bridge.cast(Event::KeyInput(self.id, ch));
 
         //self.handle.send_char(ch);
     }

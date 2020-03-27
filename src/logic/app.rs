@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use tokio::sync::mpsc;
 use tokio::task;
 
+use crate::message::{Message, Event};
 use crate::logic::window;
 use crate::logic::terminal;
 use crate::logic::state::Shared;
@@ -58,19 +59,6 @@ impl App {
             }
         }
     }
-}
-
-#[derive(Clone, Debug)]
-pub enum Message {
-    Cast(Event),
-    Call(u64, Event),
-}
-
-#[derive(Clone, Debug)]
-pub enum Event {
-    Testing,
-    KeyInput(u64, char),
-    WindowWrite(u64, String),
 }
 
 pub struct Connector {
