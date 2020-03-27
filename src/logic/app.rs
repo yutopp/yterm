@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use std::collections::HashMap;
-use tokio::sync::mpsc;
+
 use tokio::task;
 
 use crate::message::{Message, Event};
@@ -8,16 +8,24 @@ use crate::logic::window;
 use crate::logic::terminal;
 use crate::logic::state::Shared;
 
-pub struct App {
+pub use crate::conn::{ArcConnSender, ConnReceiver};
+use crate::conn::conn::Conn;
+
+pub struct App<C> where C: Conn {
     pub rt: tokio::runtime::Handle,
-    pub conn: Conn,
+    pub conn: C,
 }
 
-impl App {
+impl<C> App<C> where C: Conn {
     pub async fn run_main_loop(self) {
-        let (mut conn_sender, mut conn_receiver) = self.conn.split();
+        let (conn_sender, mut conn_receiver) = self.conn.split();
 
         let mut terminals = HashMap::new();
+        let conn_sender = Arc::new(conn_sender);
+        let shared = Shared {
+            rt: self.rt.clone(),
+            conn_sender,
+        };
 
         loop {
             while let Some(request) = conn_receiver.recv().await {
@@ -26,18 +34,11 @@ impl App {
                 match request {
                     Message::Call(id, Event::Testing) => {
                         let join = task::spawn_blocking({
-                            let init = Shared {
-                                rt: self.rt.clone(),
-                                conn_sender: conn_sender.clone(),
-                            };
-                            let init2 = Shared {
-                                rt: self.rt.clone(),
-                                conn_sender: conn_sender.clone(),
-                            };
+                            let init = shared.clone();
                             move || {
-                                let window = Arc::new(window::Window::new(init2, id));
+                                let window = Arc::new(window::Window::new(init.clone(), id));
 
-                                let terminal = terminal::Terminal::new(init);
+                                let terminal = terminal::Terminal::new(init.clone());
                                 let handle = terminal.start_thread(window.clone());
                                 (window, handle)
                             }
@@ -46,7 +47,7 @@ impl App {
                             terminals.insert(id, (window, handle));
                         }
 
-                        conn_sender.send(Message::Call(id, Event::Testing)).await;
+                        shared.conn_sender.send(Message::Call(id, Event::Testing)).await;
                     },
                     Message::Cast(Event::KeyInput(id, ch)) => {
                         if let Some((_window, handle)) = terminals.get_mut(&id) {
@@ -58,67 +59,5 @@ impl App {
                 }
             }
         }
-    }
-}
-
-pub struct Connector {
-    server_conn: Option<Box<Conn>>,
-    client_conn: Option<Box<Conn>>,
-}
-
-impl Connector {
-    pub fn new() -> Self {
-        let (server_tx, server_rx) = mpsc::channel(100);
-        let (client_tx, client_rx) = mpsc::channel(100);
-        Self {
-            server_conn: Some(Box::new(Conn::new(client_tx, server_rx))),
-            client_conn: Some(Box::new(Conn::new(server_tx, client_rx))),
-        }
-    }
-
-    pub fn server_conn(&mut self) -> Option<Conn> {
-        let c = self.server_conn.take();
-        return c.map(|p| *p)
-    }
-
-    pub fn client_attach_to_local_server(&mut self) -> Option<Conn> {
-        let c = self.client_conn.take();
-        return c.map(|p| *p)
-    }
-}
-
-pub struct Conn {
-    tx: mpsc::Sender<Message>,
-    rx: mpsc::Receiver<Message>,
-}
-
-impl Conn {
-    pub fn new(tx: mpsc::Sender<Message>, rx: mpsc::Receiver<Message>) -> Self {
-        Self { tx, rx }
-    }
-
-    pub fn split(self) -> (ConnSender, ConnReceiver) {
-        (ConnSender(self.tx), ConnReceiver(self.rx))
-    }
-}
-
-#[derive(Clone)]
-pub struct ConnSender(mpsc::Sender<Message>);
-
-impl ConnSender {
-    pub fn try_send(&mut self, ev: Message) {
-        let _ = self.0.try_send(ev);
-    }
-
-    pub async fn send(&mut self, ev: Message) {
-        let _ = self.0.send(ev).await;
-    }
-}
-
-pub struct ConnReceiver(mpsc::Receiver<Message>);
-
-impl ConnReceiver {
-    pub async fn recv(&mut self) -> Option<Message> {
-        self.0.recv().await
     }
 }

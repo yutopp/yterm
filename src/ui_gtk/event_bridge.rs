@@ -6,11 +6,11 @@ use std::sync::RwLock;
 
 use tokio::task;
 
-use crate::logic::app;
+use crate::conn::{Conn, ArcConnSender, ConnReceiver};
 use crate::message::{Message, Event};
 
-pub struct EventBridge {
-    pub conn_sender: app::ConnSender,
+pub struct EventBridge  {
+    conn_sender: ArcConnSender,
     id_map: Arc<RwLock<EventRelation>>,
 }
 
@@ -21,10 +21,10 @@ pub struct EventBridge {
 // [U I]
 
 impl EventBridge {
-    pub fn new(
-        conn: app::Conn,
+    pub fn new<C>(
+        conn: C,
         ui_cast_tx: glib::Sender<Event>,
-    ) -> Rc<Self> {
+    ) -> Rc<Self> where C: Conn {
         let (conn_sender, mut conn_receiver) = conn.split(); // backend
 
         //let (brg_tx, brg_rx) = mpsc::sync_channel(200);
@@ -32,7 +32,7 @@ impl EventBridge {
         let id_map = Arc::new(RwLock::new(EventRelation::new()));
 
         // a task to receive messages from the backend and send them to the UI.
-        let join_recv = task::spawn({
+        let _join_recv = task::spawn({
             let id_map = id_map.clone();
             let ui_cast_tx = ui_cast_tx.clone();
             async move {
@@ -55,20 +55,19 @@ impl EventBridge {
                             }
                         }
                     });
-                    let handle = join.await;
+                    join.await.unwrap();
                 }
             }
         });
 
         Rc::new(Self {
-            conn_sender,
+            conn_sender: Arc::new(conn_sender),
             id_map: id_map,
         })
     }
 
     pub fn cast(&self, e: Event) -> Result<(), ()> {
-        let mut sender = self.conn_sender.clone();
-        sender.try_send(Message::Cast(e));
+        self.conn_sender.try_send(Message::Cast(e));
 
         Ok(())
     }
@@ -81,8 +80,7 @@ impl EventBridge {
             map_ref.register(tx)
         };
 
-        let mut sender = self.conn_sender.clone();
-        sender.try_send(Message::Call(cur, e));
+        self.conn_sender.try_send(Message::Call(cur, e));
 
         let event = rx.recv().unwrap();
         println!("received: {:?}", event);

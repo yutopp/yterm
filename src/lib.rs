@@ -9,3 +9,4 @@ extern crate libc;
 pub mod logic;
 pub mod ui_gtk;
 pub mod message;
+pub mod conn;

@@ -15,7 +15,7 @@ impl Window {
     }
 
     pub async fn write(&self, s: String) {
-        let mut conn_sender = self.init.conn_sender.clone();
+        let conn_sender = &self.init.conn_sender;
         let id = self.id;
 
         conn_sender.send(Message::Cast(Event::WindowWrite(id, s))).await;

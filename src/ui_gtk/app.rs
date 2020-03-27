@@ -6,15 +6,15 @@ use std::collections::HashMap;
 use gio::prelude::*;
 use gtk::prelude::*;
 
-use crate::logic::app::{Conn};
+use crate::conn::Conn;
 use crate::message::{Event};
 use crate::ui_gtk::im;
 use crate::ui_gtk::event_bridge;
 use crate::ui_gtk::state;
 use crate::ui_gtk::terminal as ui_terminal;
 
-pub struct Shared {
-    pub conn: Conn,
+pub struct Shared<C> {
+    pub conn: C,
 }
 
 struct State {
@@ -24,12 +24,12 @@ struct State {
     font_height: i32,
 }
 
-pub struct UI {
-    shared: Shared,
+pub struct UI<C> {
+    shared: Shared<C>,
 }
 
-impl UI {
-    pub fn new(shared: Shared) -> Self {
+impl<C> UI<C> where C: Conn {
+    pub fn new(shared: Shared<C>) -> Self {
         Self { shared }
     }
 

@@ -18,3 +18,4 @@ glib-sys = { version = "" }
 gdk = { version = "" }
 cairo-rs = { version = "", features = ["v1_16"] }
 pango = { version = "" }
+async-trait = ""

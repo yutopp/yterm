@@ -1,6 +1,7 @@
 extern crate yterm;
 
-use std::rc::Rc;
+mod local_connector;
+
 use std::thread;
 use std::time::Duration;
 use tokio::task;
@@ -12,7 +13,7 @@ fn main() {
         .build()
         .unwrap();
 
-    let mut connector = yterm::logic::app::Connector::new();
+    let mut connector = local_connector::LocalConnector::new();
 
     // Backend
     rt.spawn({
@@ -43,7 +44,7 @@ fn main() {
                 let ui = yterm::ui_gtk::app::UI::new(shared);
                 ui.run();
             });
-            join.await;
+            join.await.unwrap();
         });
     });
     ui_th.join().unwrap();
