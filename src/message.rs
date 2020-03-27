@@ -1,5 +1,5 @@
-mod message;
 mod event;
+mod message;
 
-pub use message::Message;
 pub use event::Event;
+pub use message::Message;

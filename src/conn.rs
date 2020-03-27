@@ -1,4 +1,4 @@
-pub mod conn;
 pub mod channel;
+pub mod conn;
 
-pub use conn::{Conn, ArcConnSender, ConnReceiver};
+pub use conn::{ArcConnSender, Conn, ConnReceiver};

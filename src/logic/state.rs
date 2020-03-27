@@ -1,4 +1,4 @@
-use crate::conn::{ArcConnSender};
+use crate::conn::ArcConnSender;
 
 #[derive(Clone)]
 pub struct Shared {

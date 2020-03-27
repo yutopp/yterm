@@ -6,7 +6,7 @@ extern crate gtk;
 extern crate gtk_sys;
 extern crate libc;
 
-pub mod logic;
-pub mod ui_gtk;
-pub mod message;
 pub mod conn;
+pub mod logic;
+pub mod message;
+pub mod ui_gtk;

@@ -19,11 +19,11 @@ impl LocalConnector {
 
     pub fn server_conn(&mut self) -> Option<ChannelConn> {
         let c = self.server_conn.take();
-        return c
+        return c;
     }
 
     pub fn client_attach_to_local_server(&mut self) -> Option<ChannelConn> {
         let c = self.client_conn.take();
-        return c
+        return c;
     }
 }

@@ -1,15 +1,15 @@
-use std::rc::Rc;
-use std::sync::Arc;
 use std::collections::HashMap;
+use std::rc::Rc;
 use std::sync::mpsc;
+use std::sync::Arc;
 use std::sync::RwLock;
 
 use tokio::task;
 
-use crate::conn::{Conn, ArcConnSender, ConnReceiver};
-use crate::message::{Message, Event};
+use crate::conn::{ArcConnSender, Conn, ConnReceiver};
+use crate::message::{Event, Message};
 
-pub struct EventBridge  {
+pub struct EventBridge {
     conn_sender: ArcConnSender,
     id_map: Arc<RwLock<EventRelation>>,
 }
@@ -21,10 +21,10 @@ pub struct EventBridge  {
 // [U I]
 
 impl EventBridge {
-    pub fn new<C>(
-        conn: C,
-        ui_cast_tx: glib::Sender<Event>,
-    ) -> Rc<Self> where C: Conn {
+    pub fn new<C>(conn: C, ui_cast_tx: glib::Sender<Event>) -> Rc<Self>
+    where
+        C: Conn,
+    {
         let (conn_sender, mut conn_receiver) = conn.split(); // backend
 
         //let (brg_tx, brg_rx) = mpsc::sync_channel(200);
@@ -38,20 +38,18 @@ impl EventBridge {
             async move {
                 while let Some(response) = conn_receiver.recv().await {
                     eprintln!("Tx = {:?}", response.clone());
-                     let join = task::spawn_blocking({
+                    let join = task::spawn_blocking({
                         let id_map = id_map.clone();
                         let ui_cast_tx = ui_cast_tx.clone();
-                        move || {
-                            match response {
-                                Message::Cast(ev) => {
-                                    eprintln!("Cast = {:?}", ev);
-                                    ui_cast_tx.send(ev).unwrap();
-                                }
-                                Message::Call(id, ev) => {
-                                    eprintln!("Call = {:?}", ev);
-                                    let mut map_ref = id_map.write().unwrap();
-                                    map_ref.response(&id, ev);
-                                }
+                        move || match response {
+                            Message::Cast(ev) => {
+                                eprintln!("Cast = {:?}", ev);
+                                ui_cast_tx.send(ev).unwrap();
+                            }
+                            Message::Call(id, ev) => {
+                                eprintln!("Call = {:?}", ev);
+                                let mut map_ref = id_map.write().unwrap();
+                                map_ref.response(&id, ev);
                             }
                         }
                     });
@@ -104,12 +102,15 @@ impl EventRelation {
 
     fn register(&mut self, tx: mpsc::SyncSender<Event>) -> u64 {
         let cur = self.uniq;
-        self.uniq+=1;
-        self.msg_recv_tx_map.insert(cur, Box::new(move |ev| {
+        self.uniq += 1;
+        self.msg_recv_tx_map.insert(
+            cur,
+            Box::new(move |ev| {
                 println!("callback");
                 tx.send(ev).unwrap();
-            ()
-        }));
+                ()
+            }),
+        );
 
         cur
     }

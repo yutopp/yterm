@@ -1,15 +1,15 @@
-use std::rc::Rc;
-use std::sync::Arc;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
+use std::sync::Arc;
 
 use gio::prelude::*;
 use gtk::prelude::*;
 
 use crate::conn::Conn;
-use crate::message::{Event};
-use crate::ui_gtk::im;
+use crate::message::Event;
 use crate::ui_gtk::event_bridge;
+use crate::ui_gtk::im;
 use crate::ui_gtk::state;
 use crate::ui_gtk::terminal as ui_terminal;
 
@@ -28,17 +28,19 @@ pub struct UI<C> {
     shared: Shared<C>,
 }
 
-impl<C> UI<C> where C: Conn {
+impl<C> UI<C>
+where
+    C: Conn,
+{
     pub fn new(shared: Shared<C>) -> Self {
         Self { shared }
     }
 
     pub fn run(self) {
-        let application =
-            gtk::Application::new(Some("net.yutopp.yterm"), Default::default())
+        let application = gtk::Application::new(Some("net.yutopp.yterm"), Default::default())
             .expect("failed to initialize GTK application");
 
-        let m : HashMap<u64, Arc<RefCell<ui_terminal::UI>>> = HashMap::new();
+        let m: HashMap<u64, Arc<RefCell<ui_terminal::UI>>> = HashMap::new();
         let windows = Rc::new(RefCell::new(m));
 
         let Shared { conn } = self.shared;
@@ -56,7 +58,7 @@ impl<C> UI<C> where C: Conn {
                             ui.borrow_mut().handle_message(content);
                         }
                     }
-                    _ => ()
+                    _ => (),
                 }
 
                 glib::Continue(true)

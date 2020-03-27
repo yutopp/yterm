@@ -1,5 +1,5 @@
-use crate::ui_gtk::im;
 use crate::ui_gtk::event_bridge;
+use crate::ui_gtk::im;
 use std::rc::Rc;
 
 pub struct UIShared {

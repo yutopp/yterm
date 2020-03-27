@@ -1,8 +1,8 @@
-use tokio::sync::mpsc;
 use async_trait::async_trait;
+use tokio::sync::mpsc;
 
 use crate::conn::conn;
-use crate::message::{Message};
+use crate::message::Message;
 
 pub struct ChannelConn {
     tx: mpsc::Sender<Message>,

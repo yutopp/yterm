@@ -6,7 +6,7 @@ use gtk::prelude::*;
 //use gio::prelude::*;
 use gtk::{DrawingArea, DrawingAreaBuilder};
 
-use crate::message::{Event};
+use crate::message::Event;
 use crate::ui_gtk::im;
 use crate::ui_gtk::state::UIShared;
 
@@ -16,7 +16,6 @@ pub struct UI {
     id: u64,
     ui_shared: UIShared,
     //handle: Handle,
-
     columns: i32,
     rows: i32,
     font_width: i32,
@@ -135,10 +134,8 @@ impl UI {
     fn change_ui_size(&self) {
         //let state = &self.handle.state;
 
-        self.widget.set_size_request(
-            self.columns * self.font_width,
-            self.rows * self.font_height,
-        );
+        self.widget
+            .set_size_request(self.columns * self.font_width, self.rows * self.font_height);
     }
 
     fn commit_text(&mut self, text: &str) {

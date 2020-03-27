@@ -1,22 +1,28 @@
-use std::sync::Arc;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use tokio::task;
 
-use crate::message::{Message, Event};
-use crate::logic::window;
-use crate::logic::terminal;
 use crate::logic::state::Shared;
+use crate::logic::terminal;
+use crate::logic::window;
+use crate::message::{Event, Message};
 
-pub use crate::conn::{ArcConnSender, ConnReceiver};
 use crate::conn::conn::Conn;
+pub use crate::conn::{ArcConnSender, ConnReceiver};
 
-pub struct App<C> where C: Conn {
+pub struct App<C>
+where
+    C: Conn,
+{
     pub rt: tokio::runtime::Handle,
     pub conn: C,
 }
 
-impl<C> App<C> where C: Conn {
+impl<C> App<C>
+where
+    C: Conn,
+{
     pub async fn run_main_loop(self) {
         let (conn_sender, mut conn_receiver) = self.conn.split();
 
@@ -47,15 +53,17 @@ impl<C> App<C> where C: Conn {
                             terminals.insert(id, (window, handle));
                         }
 
-                        shared.conn_sender.send(Message::Call(id, Event::Testing)).await;
-                    },
+                        shared
+                            .conn_sender
+                            .send(Message::Call(id, Event::Testing))
+                            .await;
+                    }
                     Message::Cast(Event::KeyInput(id, ch)) => {
                         if let Some((_window, handle)) = terminals.get_mut(&id) {
                             handle.send_char(ch);
                         }
-                    },
-                    _ => {
                     }
+                    _ => {}
                 }
             }
         }

@@ -1,8 +1,8 @@
-use std::sync::Arc;
 use async_trait::async_trait;
+use std::sync::Arc;
 
 use crate::conn::channel;
-use crate::message::{Message};
+use crate::message::Message;
 
 pub trait Conn {
     type Sender: ConnSender + Send + Sync + 'static;

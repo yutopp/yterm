@@ -1,5 +1,5 @@
 use crate::logic::state::Shared;
-use crate::message::{Message, Event};
+use crate::message::{Event, Message};
 
 pub struct Window {
     init: Shared,
@@ -8,16 +8,15 @@ pub struct Window {
 
 impl Window {
     pub fn new(init: Shared, id: u64) -> Self {
-        Self {
-            init,
-            id,
-        }
+        Self { init, id }
     }
 
     pub async fn write(&self, s: String) {
         let conn_sender = &self.init.conn_sender;
         let id = self.id;
 
-        conn_sender.send(Message::Cast(Event::WindowWrite(id, s))).await;
+        conn_sender
+            .send(Message::Cast(Event::WindowWrite(id, s)))
+            .await;
     }
 }

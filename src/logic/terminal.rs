@@ -3,8 +3,8 @@ use std::os::unix::io::AsRawFd;
 use std::sync::Arc;
 
 use crate::logic::pty;
-use crate::logic::window;
 use crate::logic::state::Shared;
+use crate::logic::window;
 
 #[derive(Debug)]
 pub enum Event {
@@ -138,7 +138,7 @@ impl Terminal {
                 loop {
                     if let Ok(n) = reader.read(&mut buf[..]).await {
                         let s = String::from_utf8(buf[..n].into()).unwrap();
-                        println!("{:?}",s);
+                        println!("{:?}", s);
 
                         win.write(s).await;
                         //tx.send(Event::Terminal(buf[..n].into())).unwrap();
